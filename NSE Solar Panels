@@ -1,0 +1,104 @@
+#for data logging
+
+import os
+import time 
+from time import sleep
+from datetime import datetime
+
+file = open("/home/pi/data_log.csv", "a")
+i=0
+if os.stat("/home/pi/data_log.csv").st_size == 0:
+        file.write("Time,Sensor1,Sensor2,Sensor3,Sensor4,Sensor5\n")
+while True:
+        i=i+1
+        now = datetime.now()
+        file.write(str(now)+","+str(i)+","+str(-i)+","+str(i-10)+","+str(i+5)+","+str(i*i)+"\n")
+        file.flush()
+        time.sleep(5)<br>file.close()
+
+#i do not know if this will work but if i can put it in a file
+#and then upload that on to the SD card 
+#i could then put the file onto my computer and open with excel
+
+
+#this is hte code for showing realtime output of the panel
+#not sure if it is reading correctly though
+
+import time
+
+# Import SPI library (for hardware SPI) and MCP3008 library.
+import Adafruit_GPIO.SPI as SPI
+import Adafruit_MCP3008
+
+
+# Software SPI configuration:
+CLK  = 18
+MISO = 23
+MOSI = 24
+CS   = 25
+mcp = Adafruit_MCP3008.MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
+
+# Hardware SPI configuration:
+# SPI_PORT   = 0
+# SPI_DEVICE = 0
+# mcp = Adafruit_MCP3008.MCP3008(spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE))
+
+
+print('Reading MCP3008 values, press Ctrl-C to quit...')
+# Print nice channel column headers.
+print('| {0:>4} | {1:>4} | {2:>4} | {3:>4} | {4:>4} | {5:>4} | {6:>4} | {7:>4} |'.format(*range(8)))
+print('-' * 57)
+# Main program loop.
+while True:
+    # Read all the ADC channel values in a list.
+    values = [0]*8
+    for i in range(8):
+        # The read_adc function will get the value of the specified channel (0-7).
+        values[i] = mcp.read_adc(i)
+    # Print the ADC values.
+    print('| {0:>4} | {1:>4} | {2:>4} | {3:>4} | {4:>4} | {5:>4} | {6:>4} | {7:>4} |'.format(*values))
+    # Pause for half a second.
+    time.sleep(0.5)
+
+
+#this is the code for the soalr panels 
+#we are only measuring voltage 
+
+from __future__ import division
+
+# Import SPI library (for hardware SPI) and MCP3008 library.
+import Adafruit_GPIO.SPI as SPI
+import Adafruit_MCP3008
+
+# for POST request
+import requests
+
+# Software SPI configuration:
+CLK  = 18
+MISO = 23
+MOSI = 24
+CS   = 25
+mcp = Adafruit_MCP3008.MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
+
+# Get current value from pin 0
+analog_val = mcp.read_adc(0)
+
+# multiplier
+multiplier = (5 / 1024) # 5V divided by 1024 analog steps
+
+computed_voltage = (analog_val * multiplier)
+
+# compute current
+# V = IR -> I = V/R
+
+computed_current = (computed_voltage / 1000) # 1000 = 1K Ohm
+
+# compute power
+# P = IV
+
+computed_power = (computed_voltage * computed_current)
+
+print 'analog val: ' + str(analog_val) + ' voltage: ' + str(computed_voltage) + ' current: ' + str(computed_current) + ' power: ' + computed_power
+
+
+
